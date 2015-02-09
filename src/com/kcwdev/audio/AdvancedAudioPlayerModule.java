@@ -12,8 +12,6 @@ import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
 
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.util.Log;
-import org.appcelerator.titanium.util.TiConfig;
 
 @Kroll.module(name="AdvancedAudioPlayer", id="com.kcwdev.audio")
 public class AdvancedAudioPlayerModule extends KrollModule

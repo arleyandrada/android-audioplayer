@@ -9,8 +9,6 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiContext.OnLifecycleEvent;
-import org.appcelerator.titanium.util.Log;
-import org.appcelerator.titanium.util.TiConfig;
 import org.appcelerator.titanium.util.TiConvert;
 
 
@@ -21,7 +19,6 @@ public class AudioPlayerProxy extends KrollProxy
 	implements OnLifecycleEvent
 {
 	private static final String LCAT = "AudioPlayerProxy";
-	private static final boolean DBG = TiConfig.LOGD;
 
 	@Kroll.constant public static final int STATE_BUFFERING = MediaPlayerWrapper.STATE_BUFFERING;
 	@Kroll.constant public static final int STATE_INITIALIZED = MediaPlayerWrapper.STATE_INITIALIZED;
@@ -40,20 +37,17 @@ public class AudioPlayerProxy extends KrollProxy
 		super(tiContext);
 
 		tiContext.addOnLifecycleEventListener(this);
-		setProperty("volume", 0.5, true);
+		setProperty("volume", 0.5);
 	}
 
 	@Override
 	public void handleCreationDict(KrollDict options) {
 		super.handleCreationDict(options);
 		if (options.containsKey(TiC.PROPERTY_URL)) {
-			setProperty(TiC.PROPERTY_URL, getTiContext().resolveUrl(null, TiConvert.toString(options, TiC.PROPERTY_URL)));
+			setProperty(TiC.PROPERTY_URL, resolveUrl(null, TiConvert.toString(options, TiC.PROPERTY_URL)));
 		}
 		if (options.containsKey(TiC.PROPERTY_ALLOW_BACKGROUND)) {
 			setProperty(TiC.PROPERTY_ALLOW_BACKGROUND, options.get(TiC.PROPERTY_ALLOW_BACKGROUND));
-		}
-		if (DBG) {
-			Log.i(LCAT, "Creating audio player proxy for url: " + TiConvert.toString(getProperty("url")));
 		}
 	}
 
@@ -66,7 +60,7 @@ public class AudioPlayerProxy extends KrollProxy
 	@Kroll.setProperty @Kroll.method
 	public void setUrl(KrollInvocation kroll, String url) {
 		if (url != null) {
-			setProperty(TiC.PROPERTY_URL, kroll.getTiContext().resolveUrl(null, TiConvert.toString(url)));			
+			setProperty(TiC.PROPERTY_URL, resolveUrl(null, TiConvert.toString(url)));			
 			release();
 			getSound();
 		}

@@ -10,8 +10,6 @@ import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.titanium.TiC;
-import org.appcelerator.titanium.util.Log;
-import org.appcelerator.titanium.util.TiConfig;
 import org.appcelerator.titanium.util.TiConvert;
 
 import android.content.Context;
@@ -26,7 +24,6 @@ public class MediaPlayerWrapper
 	MediaPlayer.OnBufferingUpdateListener, MediaPlayer.OnInfoListener, MediaPlayer.OnPreparedListener
 {
 	private static final String LCAT = "AdvancedAudioPlayer";
-	private static final boolean DBG = TiConfig.LOGD;
 	
 	public static final String PROPERTY_VOLUME = "volume";
 
@@ -88,7 +85,7 @@ public class MediaPlayerWrapper
 			mp = new MediaPlayer();
 			String url = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_URL));
 			if (URLUtil.isAssetUrl(url)) {
-				Context context = proxy.getTiContext().getTiApp();
+				Context context = proxy.getActivity().getApplicationContext();
 				String path = url.substring(TiConvert.ASSET_URL.length());
 				AssetFileDescriptor afd = null;
 				try {
@@ -97,7 +94,6 @@ public class MediaPlayerWrapper
 					// http://groups.google.com/group/android-developers/browse_thread/thread/225c4c150be92416
 					mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
 				} catch (IOException e) {
-					Log.e(LCAT, "Error setting file descriptor: ", e);
 				} finally {
 					if (afd != null) {
 						afd.close();
@@ -108,7 +104,6 @@ public class MediaPlayerWrapper
 				if (uri.getScheme().equals(TiC.PROPERTY_FILE)) {
 					mp.setDataSource(uri.getPath());
 				} else {
-					Log.d(LCAT,"audio is a remote url." + url);
 
 //					IceCastScraper ic = new IceCastScraper();
 //					List<Stream> streams = ic.scrape(URI.create(url));
@@ -147,7 +142,6 @@ public class MediaPlayerWrapper
 				setTime(TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_TIME)));
 			}
 		} catch (Throwable t) {
-			Log.w(LCAT, "Issue while initializing : " , t);
 			release();
 			setState(STATE_STOPPED);
 		}
@@ -177,9 +171,6 @@ public class MediaPlayerWrapper
 		try {
 			if (mp != null) {
 				if(mp.isPlaying()) {
-					if (DBG) {
-						Log.d(LCAT,"audio is playing, pause");
-					}
 					//if (remote) {
 						stopProgressTimer();
 					//}
@@ -189,7 +180,6 @@ public class MediaPlayerWrapper
 				}
 			}
 		} catch (Throwable t) {
-			Log.w(LCAT, "Issue while pausing : " , t);
 		}
 	}
 
@@ -198,13 +188,7 @@ public class MediaPlayerWrapper
 		try {		
 			if (mp != null) {
 				if (!isPlaying()) {
-					if (DBG) {
-						Log.d(LCAT,"audio is not playing, starting.");
-					}
 					setVolume(volume);
-					if (DBG) {
-						Log.d(LCAT, "Play: Volume set to " + volume);
-					}
 					mp.start();
 					setState(STATE_PLAYING);
 					paused = false;
@@ -216,7 +200,6 @@ public class MediaPlayerWrapper
 			}					
 
 		} catch (Throwable t) {
-			Log.w(LCAT, "Issue while playing : " , t);
 			reset();
 		}
 	}
@@ -237,7 +220,6 @@ public class MediaPlayerWrapper
 				setState(STATE_STOPPED);
 			}
 		} catch (Throwable t) {
-			Log.w(LCAT, "Issue while resetting : " , t);
 		}
 	}
 
@@ -254,13 +236,9 @@ public class MediaPlayerWrapper
 
 				mp.release();
 				mp = null;
-				if (DBG) {
-					Log.d(LCAT, "Native resources released.");
-				}
 				remote = false;
 			}
 		} catch (Throwable t) {
-			Log.w(LCAT, "Issue while releasing : " , t);
 		}
 	}
 
@@ -274,7 +252,6 @@ public class MediaPlayerWrapper
 				looping = loop;
 			}
 		} catch (Throwable t) {
-			Log.w(LCAT, "Issue while configuring looping : " , t);
 		}
 	}
 
@@ -283,11 +260,9 @@ public class MediaPlayerWrapper
 		try {
 			if (volume < 0.0f) {
 				this.volume = 0.0f;
-				Log.w(LCAT, "Attempt to set volume less than 0.0. Volume set to 0.0");
 			} else if (volume > 1.0) {
 				this.volume = 1.0f;
 				proxy.setProperty(PROPERTY_VOLUME, volume);
-				Log.w(LCAT, "Attempt to set volume greater than 1.0. Volume set to 1.0");
 			} else {
 				this.volume = volume; // Store in 0.0 to 1.0, scale when setting hw
 			}
@@ -296,7 +271,6 @@ public class MediaPlayerWrapper
 				mp.setVolume(scaledVolume, scaledVolume);
 			}
 		} catch (Throwable t) {
-			Log.w(LCAT, "Issue while setting volume : " , t);
 		}
 	}
 
@@ -376,9 +350,6 @@ public class MediaPlayerWrapper
 		}
 
 		proxy.setProperty("stateDescription", stateDescription);
-		if (DBG) {
-			Log.d(LCAT, "Audio state changed: " + stateDescription);
-		}
 
 		KrollDict data = new KrollDict();
 		data.put("state", state);
@@ -393,9 +364,6 @@ public class MediaPlayerWrapper
 			if (mp != null) {
 
 				if (mp.isPlaying() || isPaused()) {
-					if (DBG) {
-						Log.d(LCAT, "audio is playing, stop()");
-					}
 					setState(STATE_STOPPING);
 					mp.stop();
 					setState(STATE_STOPPED);
@@ -405,9 +373,7 @@ public class MediaPlayerWrapper
 					try {
 						mp.prepare();
 					} catch (IOException e) {
-						Log.e(LCAT,"Error while preparing audio after stop(). Ignoring.");
 					} catch (IllegalStateException e) {
-						Log.w(LCAT, "Error while preparing audio after stop(). Ignoring.");
 					}
 				}
 
@@ -416,7 +382,6 @@ public class MediaPlayerWrapper
 				}
 			}
 		} catch (Throwable t) {
-			Log.e(LCAT, "Error : " , t);
 		}
 	}
 
@@ -449,7 +414,6 @@ public class MediaPlayerWrapper
 				msg = "Video metadata update.";
 				break;
 		}
-		Log.d(LCAT, "Error " + msg);
 
 		KrollDict data = new KrollDict();
 		data.put(TiC.PROPERTY_CODE, 0);
@@ -480,10 +444,6 @@ public class MediaPlayerWrapper
 	@Override
 	public void onBufferingUpdate(MediaPlayer mp, int percent)
 	{
-		if (DBG) {
-			Log.d(LCAT, "Buffering: " + percent + "%");
-		}
-		
 		KrollDict data = new KrollDict();
 		data.put("percent", percent);
 		proxy.fireEvent(EVENT_BUFFERING, data);
@@ -504,9 +464,6 @@ public class MediaPlayerWrapper
 			public void run() {
 				if (mp != null && mp.isPlaying()) {
 					int position = mp.getCurrentPosition();
-					if (DBG) {
-						Log.d(LCAT, "Progress: " + position);
-					}
 					KrollDict event = new KrollDict();
 					event.put("progress", position);
 					proxy.fireEvent(EVENT_PROGRESS, event);
@@ -592,7 +549,6 @@ public class MediaPlayerWrapper
 
 	@Override
 	public void onPrepared(MediaPlayer arg0) {
-		Log.d(LCAT, "In onPrepared");
 		// TODO Auto-generated method stub
 		//this.setState(STATE_INITIALIZED);
 		//startPlay();

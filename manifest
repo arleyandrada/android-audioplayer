@@ -3,6 +3,8 @@
 # during compilation, packaging, distribution, etc.
 #
 version: 1.0
+apiversion: 2
+architectures: armeabi armeabi-v7a x86
 description: Audio Player that has seek, buffering, duration
 author: Kevin Willford
 license: Specify your license
@@ -12,6 +14,6 @@ copyright: Copyright (c) 2011 by Kevin Willford
 # these should not be edited
 name: advancedaudioplayer
 moduleid: com.kcwdev.audio
-guid: 6887e00a-3237-4bcf-adb4-d96cbab9e6b8
+guid: 6887e00a-3237-4bcf-adb4-d96cbab9eaaa
 platform: android
-minsdk: 1.7.2
+minsdk: 3.2.0
